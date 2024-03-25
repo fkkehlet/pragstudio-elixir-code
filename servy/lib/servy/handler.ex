@@ -1,11 +1,14 @@
 defmodule Servy.Handler do
+  require Logger
   def handle(request) do
     request
     |> parse
     |> rewrite_path
     |> log
+    |> logger
     |> route
     |> track
+    |> emojify
     |> format_response
   end
 
@@ -18,9 +21,15 @@ defmodule Servy.Handler do
 
   def log(conv), do: IO.inspect conv
 
+  def logger(conv) do
+    Logger.warning("WARNING")
+    conv
+  end
+
   def parse request do
     [method, path, _] =
       request
+      |> String.trim_leading
       |> String.split("\n")
       |> List.first
       |> String.split(" ")
@@ -37,7 +46,19 @@ defmodule Servy.Handler do
     %{ conv | path: "/wildthings" }
   end
 
+  def rewrite_path(%{path: path} = conv) do
+    regex = ~r{\/(?<thing>\w+)\?id=(?<id>\d+)}
+    captures = Regex.named_captures(regex, path)
+    # rewrite_path_captures(captures, conv)
+    %{ conv | path: "/#{captures["thing"]}/#{captures["id"]}"}
+  end
+
   def rewrite_path(conv), do: conv
+
+  # def rewrite_path_captures(%{"thing" => thing, "id" => id}, conv) do
+  #   %{ conv | path: "/#{thing}/#{id}"}
+  # end
+  # def rewrite_path_captures(nil, conv), do: conv
 
   def route(%{method: "GET", path: "/wildthings"} = conv) do
     %{ conv | status: 200, resp_body: "Bears, Lions, Tigers"}
@@ -49,6 +70,10 @@ defmodule Servy.Handler do
 
   def route(%{method: "GET", path: "/bears/" <> id} = conv) do
     %{ conv | status: 200, resp_body: "Bear #{id}" }
+  end
+
+  def route(%{method: "DELETE", path: "/bears/" <> _id} = conv) do
+    %{ conv | status: 403, resp_body: "Bears must never be deleted!" }
   end
 
   def route(%{ path: path } = conv) do
@@ -77,6 +102,16 @@ defmodule Servy.Handler do
   # end
 
 
+  def emojify(%{status: 200} = conv) do
+    # TODO: Decorate all responses that have a 200 status with emojies before and after the actual content.
+    emojies = String.duplicate("🎉", 5)
+    body = "#{emojies}\n" <> conv.resp_body <> "\n#{emojies}"
+    %{ conv | resp_body: body }
+  end
+
+  def emojify(conv), do: conv
+
+
   def format_response(conv) do
     """
     HTTP/1.1 #{conv.status} #{status_reason(conv.status)}
@@ -100,6 +135,7 @@ defmodule Servy.Handler do
 
 end
 
+
 request = """
   GET /wildthings HTTP/1.1
   Host: example.com
@@ -107,9 +143,9 @@ request = """
   Accept: */*
 
   """
-
 response = Servy.Handler.handle(request)
 IO.puts response
+
 
 request = """
   GET /bears/1 HTTP/1.1
@@ -118,9 +154,20 @@ request = """
   Accept: */*
 
   """
-
 response = Servy.Handler.handle(request)
 IO.puts response
+
+
+request = """
+  DELETE /bears/1 HTTP/1.1
+  Host: example.com
+  User-Agent: ExampleBrowser/1.0
+  Accept: */*
+
+  """
+response = Servy.Handler.handle(request)
+IO.puts response
+
 
 request = """
   GET /bigfoot HTTP/1.1
@@ -129,7 +176,6 @@ request = """
   Accept: */*
 
   """
-
 response = Servy.Handler.handle(request)
 IO.puts response
 
@@ -141,7 +187,16 @@ request = """
   Accept: */*
 
   """
-
 response = Servy.Handler.handle(request)
 IO.puts response
 
+
+request = """
+  GET /bears?id=1 HTTP/1.1
+  Host: example.com
+  User-Agent: ExampleBrowser/1.0
+  Accept: */*
+
+  """
+response = Servy.Handler.handle(request)
+IO.puts response
