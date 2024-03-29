@@ -19,7 +19,11 @@ defmodule Servy.Handler do
 
   def track(conv), do: conv
 
-  def log(conv), do: IO.inspect conv
+  def log(conv) do
+    IO.inspect conv
+    # IO.inspect File.cwd
+    # IO.puts to_string(File.cwd)
+  end
 
   def logger(conv) do
     Logger.warning("WARNING")
@@ -49,16 +53,15 @@ defmodule Servy.Handler do
   def rewrite_path(%{path: path} = conv) do
     regex = ~r{\/(?<thing>\w+)\?id=(?<id>\d+)}
     captures = Regex.named_captures(regex, path)
-    # rewrite_path_captures(captures, conv)
-    %{ conv | path: "/#{captures["thing"]}/#{captures["id"]}"}
+    rewrite_path_captures(conv, captures)
+    # %{ conv | path: "/#{captures["thing"]}/#{captures["id"]}"}
   end
-
   def rewrite_path(conv), do: conv
 
-  # def rewrite_path_captures(%{"thing" => thing, "id" => id}, conv) do
-  #   %{ conv | path: "/#{thing}/#{id}"}
-  # end
-  # def rewrite_path_captures(nil, conv), do: conv
+  def rewrite_path_captures(conv, %{"thing" => thing, "id" => id}) do
+    %{ conv | path: "/#{thing}/#{id}"}
+  end
+  def rewrite_path_captures(conv, nil), do: conv
 
   def route(%{method: "GET", path: "/wildthings"} = conv) do
     %{ conv | status: 200, resp_body: "Bears, Lions, Tigers"}
@@ -68,6 +71,13 @@ defmodule Servy.Handler do
     %{ conv | status: 200, resp_body: "Teddy, Smokey, Paddington"}
   end
 
+  def route(%{method: "GET", path: "/bears/new"} = conv) do
+    Path.expand("../../pages", __DIR__)
+    |> Path.join("form.html")
+    |> File.read
+    |> handle_file(conv)
+  end
+
   def route(%{method: "GET", path: "/bears/" <> id} = conv) do
     %{ conv | status: 200, resp_body: "Bear #{id}" }
   end
@@ -75,6 +85,49 @@ defmodule Servy.Handler do
   def route(%{method: "DELETE", path: "/bears/" <> _id} = conv) do
     %{ conv | status: 403, resp_body: "Bears must never be deleted!" }
   end
+
+  def route(%{method: "GET", path: "/about"} = conv) do
+      Path.expand("../../pages", __DIR__)
+      |> Path.join("about.html")
+      |> File.read
+      |> handle_file(conv)
+  end
+
+  def route(%{method: "GET", path: "/pages/" <> file} = conv) do {
+    Path.expand("../../pages", __DIR__)
+    |> Path.join(file <> ".html")
+    |> File.read
+    |> handle_file(conv)
+  }
+
+  def handle_file({:ok, content}, conv) do
+    %{ conv | status: 200, resp_body: content }
+  end
+
+  def handle_file({:error, :enoent}, conv) do
+    %{ conv | status: 404, resp_body: "File not found" }
+  end
+
+  def handle_file({:error, reason}, conv) do
+    %{ conv | status: 500, resp_body: "File error: #{reason}" }
+  end
+
+  # def route(%{method: "GET", path: "/about"} = conv) do
+  #   file =
+  #     Path.expand("../../pages", __DIR__)
+  #     |> Path.join("about.html")
+  #
+  #   case File.read(file) do
+  #     {:ok, content} ->
+  #       %{ conv | status: 200, resp_body: content }
+  #
+  #     {:error, :enoent} ->
+  #       %{ conv | status: 404, resp_body: "File not found" }
+  #
+  #     {:error, reason} ->
+  #       %{ conv | status: 500, resp_body: "File error: #{reason}" }
+  #   end
+  # end
 
   def route(%{ path: path } = conv) do
     %{ conv | status: 404, resp_body: "No #{path} here!" }
@@ -193,6 +246,27 @@ IO.puts response
 
 request = """
   GET /bears?id=1 HTTP/1.1
+  Host: example.com
+  User-Agent: ExampleBrowser/1.0
+  Accept: */*
+
+  """
+response = Servy.Handler.handle(request)
+IO.puts response
+
+
+request = """
+  GET /about HTTP/1.1
+  Host: example.com
+  User-Agent: ExampleBrowser/1.0
+  Accept: */*
+
+  """
+response = Servy.Handler.handle(request)
+IO.puts response
+
+request = """
+  GET /bears/new HTTP/1.1
   Host: example.com
   User-Agent: ExampleBrowser/1.0
   Accept: */*
