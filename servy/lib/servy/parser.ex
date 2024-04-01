@@ -31,17 +31,16 @@ defmodule Servy.Parser do
   #
   # def parse_headers([], headers), do: headers
 
-  def parse_headers(header_lines) do
+  defp parse_headers(header_lines) do
     Enum.reduce(header_lines, %{}, fn(line, current_map) ->
       [k, v] = line |> String.trim() |> String.split(": ")
       Map.put(current_map, k, v)
     end)
   end
 
-  @doc "Decode query parameters if the content type matches"
-  def parse_params("application/x-www-form-urlencoded", params_string) do
+  defp parse_params("application/x-www-form-urlencoded", params_string) do
     params_string |> String.trim() |> URI.decode_query()
   end
 
-  def parse_params(_, _), do: %{}
+  defp parse_params(_, _), do: %{}
 end
