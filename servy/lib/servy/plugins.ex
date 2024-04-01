@@ -1,5 +1,7 @@
 defmodule Servy.Plugins do
 
+  require Logger
+
   alias Servy.Conv
 
   @doc "Logs 404 requests"
@@ -20,15 +22,19 @@ defmodule Servy.Plugins do
     rewrite_path_captures(conv, captures)
     # %{ conv | path: "/#{captures["thing"]}/#{captures["id"]}"}
   end
+
   def rewrite_path(%Conv{} = conv), do: conv
 
   def rewrite_path_captures(conv, %{"thing" => thing, "id" => id}) do
     %{ conv | path: "/#{thing}/#{id}"}
   end
+
   def rewrite_path_captures(conv, nil), do: conv
 
-
-  def log(%Conv{} = conv), do: IO.inspect conv
+  def log(%Conv{} = conv) do
+    Logger.warning("keep calm and carry on")
+    IO.inspect conv
+  end
 end
 
 

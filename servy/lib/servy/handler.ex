@@ -7,7 +7,6 @@ defmodule Servy.Handler do
 
   alias Servy.Conv
 
-  require Logger
 
   import Servy.Plugins, only: [rewrite_path: 1, log: 1, track: 1]
   import Servy.Parser, only: [parse: 1]
@@ -19,16 +18,10 @@ defmodule Servy.Handler do
     |> parse
     |> rewrite_path
     |> log
-    |> logger
     |> route
     |> track
     |> emojify
     |> format_response
-  end
-
-  def logger(conv) do
-    Logger.warning("WARNING")
-    conv
   end
 
   def route(%Conv{method: "GET", path: "/wildthings"} = conv) do
