@@ -1,5 +1,5 @@
 defmodule Servy.BearController do
-  alias Servy.{Bear, BearView, Conv, View, Wildthings}
+  alias Servy.{Bear, Conv, View, Wildthings}
   # alias Servy.BearView
   # alias Servy.Conv
   # alias Servy.View, only: [render: 3]
