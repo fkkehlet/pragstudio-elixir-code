@@ -4,8 +4,9 @@ defmodule Servy.Handler do
   # @pages_path Path.expand("../../pages", __DIR__)
   @pages_path Path.expand("pages", File.cwd!())
 
-  alias Servy.Conv
-  alias Servy.BearController
+  alias Servy.{Api, BearController, Conv}
+
+  require Earmark
 
   import Servy.Plugins, only: [rewrite_path: 1, log: 1, track: 1]
   import Servy.Parser, only: [parse: 1]
@@ -20,11 +21,20 @@ defmodule Servy.Handler do
     |> route
     |> track
     # |> emojify
+    |> put_content_length
     |> format_response
   end
 
   def route(%Conv{method: "GET", path: "/wildthings"} = conv) do
     %{conv | status: 200, resp_body: "Bears, Lions, Tigers"}
+  end
+
+  def route(%Conv{method: "GET", path: "/api/bears"} = conv) do
+    Api.BearController.index(conv)
+  end
+
+  def route(%Conv{method: "POST", path: "/api/bears"} = conv) do
+    Api.BearController.create(conv, conv.params)
   end
 
   def route(%Conv{method: "GET", path: "/bears"} = conv) do
@@ -58,6 +68,15 @@ defmodule Servy.Handler do
     |> handle_file(conv)
   end
 
+  def route(%Conv{method: "GET", path: "/blog/" <> file} = conv) do
+    @pages_path
+    |> Path.join("/blog")
+    |> Path.join(file <> ".md")
+    |> File.read()
+    |> handle_file(conv)
+    |> md_to_html()
+  end
+
   def route(%Conv{method: "GET", path: "/pages/" <> file} = conv) do
     @pages_path
     |> Path.join(file <> ".html")
@@ -65,9 +84,15 @@ defmodule Servy.Handler do
     |> handle_file(conv)
   end
 
-  def route(%Conv{path: path} = conv) do
-    %{conv | status: 404, resp_body: "No #{path} here!"}
+  def route(%Conv{method: "GET", path: path} = conv) do
+    %{ conv | status: 404, resp_body: "No #{path} here!" }
   end
+
+  def md_to_html(%Conv{status: 200} = conv) do
+    %{conv | resp_body: Earmark.as_html!(conv.resp_body)}
+  end
+
+  def md_to_html(%Conv{} = conv), do: conv
 
   # def route(%{method: "GET", path: "/about"} = conv) do
   #   file =
@@ -108,7 +133,6 @@ defmodule Servy.Handler do
   # end
 
   def emojify(%Conv{status: 200} = conv) do
-    # TODO: Decorate all responses that have a 200 status with emojies before and after the actual content.
     emojies = String.duplicate("🎉", 5)
     body = "#{emojies}\n" <> conv.resp_body <> "\n#{emojies}"
     %{conv | resp_body: body}
@@ -116,13 +140,25 @@ defmodule Servy.Handler do
 
   def emojify(%Conv{} = conv), do: conv
 
-  def format_response(%Conv{} = conv) do
+  defp put_content_length(%Conv{} = conv) do
+    headers = Map.put(conv.resp_headers, "Content-Length", byte_size(conv.resp_body))
+    %{conv | resp_headers: headers}
+  end
+
+  defp format_response(%Conv{} = conv) do
     """
     HTTP/1.1 #{Conv.full_status(conv)}\r
-    Content-Type: text/html\r
-    Content-Length: #{byte_size(conv.resp_body)}\r
+    #{format_response_headers(conv)}
     \r
     #{conv.resp_body}
     """
+  end
+
+  defp format_response_headers(%Conv{} = conv) do
+    conv.resp_headers
+    |> Enum.map(fn {key, value} -> "#{key}: #{value}\r" end)
+    |> Enum.sort()
+    |> Enum.reverse()
+    |> Enum.join("\n")
   end
 end

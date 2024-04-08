@@ -12,7 +12,6 @@ defmodule Comprehensions do
   |> Enum.shuffle()
   # |> Enum.take(13)
   |> Enum.chunk_every(13)
+
   # |> IO.inspect
 end
-
-

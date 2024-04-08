@@ -32,7 +32,7 @@ defmodule Recurse do
     my_map(t, func, [func.(h) | current_list])
   end
 
-  def my_map([], _func, current_list), do:  current_list |> Enum.reverse()
+  def my_map([], _func, current_list), do: current_list |> Enum.reverse()
 end
 
 # IO.puts Recurse.sum([1, 2, 3, 4, 5], 0)
