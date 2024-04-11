@@ -8,7 +8,7 @@ defmodule Servy.Handler do
 
   require Earmark
 
-  import Servy.Plugins, only: [rewrite_path: 1, log: 1, track: 1]
+  import Servy.Plugins, only: [rewrite_path: 1, track: 1]
   import Servy.Parser, only: [parse: 1]
   import Servy.FileHandler, only: [handle_file: 2]
 
@@ -17,12 +17,17 @@ defmodule Servy.Handler do
     request
     |> parse
     |> rewrite_path
-    |> log
+    # |> log
     |> route
     |> track
     # |> emojify
     |> put_content_length
     |> format_response
+  end
+
+  def route(%Conv{method: "GET", path: "/hibernate/" <> time} = conv) do
+    time |> String.to_integer() |> :timer.sleep()
+    %{conv | status: 200, resp_body: "Awake!"}
   end
 
   def route(%Conv{method: "GET", path: "/wildthings"} = conv) do
@@ -85,7 +90,7 @@ defmodule Servy.Handler do
   end
 
   def route(%Conv{method: "GET", path: path} = conv) do
-    %{ conv | status: 404, resp_body: "No #{path} here!" }
+    %{conv | status: 404, resp_body: "No #{path} here!"}
   end
 
   def md_to_html(%Conv{status: 200} = conv) do
