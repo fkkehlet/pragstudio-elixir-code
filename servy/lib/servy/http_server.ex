@@ -34,8 +34,14 @@ defmodule Servy.HttpServer do
     IO.puts("⚡️  Connection accepted!\n")
 
     # Receives the request and sends a response over the client socket.
-    spawn(fn() -> serve(client_socket) end)
+    pid = spawn(fn() -> serve(client_socket) end)
     # serve(client_socket)
+
+    # If the spawned process dies, it doesn't automatically close the client_socket.
+    # Why? Because the spawned process is not the controlling process.
+    # Not to worry. We can make it the controlling process like so:
+    :ok = :gen_tcp.controlling_process(client_socket, pid)
+    # Now, a request to /hibernate/kaboom will not hang the server.
 
     # Loop back to wait and accept the next connection.
     accept_loop(listen_socket)

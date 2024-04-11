@@ -1,10 +1,10 @@
 defmodule Servy.HttpClient do
-  def send_request(request) do
+  def send_request(request, port) when is_integer(port) and port > 1023 do
     # to make it runnable on one machine
     some_host_in_net = ~c"localhost"
 
     {:ok, socket} =
-      :gen_tcp.connect(some_host_in_net, 5678, [:binary, packet: :raw, active: false])
+      :gen_tcp.connect(some_host_in_net, port, [:binary, packet: :raw, active: false])
 
     :ok = :gen_tcp.send(socket, request)
     {:ok, packet} = :gen_tcp.recv(socket, 0)
