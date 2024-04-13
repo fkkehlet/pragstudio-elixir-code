@@ -4,7 +4,7 @@ defmodule Servy.Handler do
   # @pages_path Path.expand("../../pages", __DIR__)
   @pages_path Path.expand("pages", File.cwd!())
 
-  alias Servy.{Api, BearController, Conv}
+  alias Servy.{Api, BearController, Conv, VideoCam}
 
   require Earmark
 
@@ -15,19 +15,39 @@ defmodule Servy.Handler do
   @doc "Transforms the request into a response."
   def handle(request) do
     request
-    |> parse
-    |> rewrite_path
-    # |> log
-    |> route
-    |> track
-    # |> emojify
-    |> put_content_length
-    |> format_response
+    |> parse()
+    |> rewrite_path()
+    # |> log()
+    |> route()
+    |> track()
+    # |> emojify()
+    |> put_content_length()
+    |> format_response()
   end
 
   def route(%Conv{method: "GET", path: "/hibernate/" <> time} = conv) do
     time |> String.to_integer() |> :timer.sleep()
     %{conv | status: 200, resp_body: "Awake!"}
+  end
+
+  def route(%Conv{method: "GET", path: "/snapshots"} = conv) do
+    caller = self() # the request-handling process
+
+    VideoCam.get_snapshot(caller, "cam-1")
+    VideoCam.get_snapshot(caller, "cam-2")
+    VideoCam.get_snapshot(caller, "cam-3")
+
+    snap1 = receive do {:result, filename} -> filename end
+    snap2 = receive do {:result, filename} -> filename end
+    snap3 = receive do {:result, filename} -> filename end
+
+    snapshots = [snap1, snap2, snap3]
+
+    %{conv | status: 200, resp_body: inspect(snapshots)}
+  end
+
+  def route(%Conv{method: "GET", path: "/kaboom"}) do
+    raise "Kaboom!"
   end
 
   def route(%Conv{method: "GET", path: "/wildthings"} = conv) do

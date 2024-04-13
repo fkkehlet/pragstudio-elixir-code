@@ -41,7 +41,7 @@ defmodule Servy.HttpServer do
     # Why? Because the spawned process is not the controlling process.
     # Not to worry. We can make it the controlling process like so:
     :ok = :gen_tcp.controlling_process(client_socket, pid)
-    # Now, a request to /hibernate/kaboom will not hang the server.
+    # Now, a request to /hibernate/foo or /kaboom will not hang the server.
 
     # Loop back to wait and accept the next connection.
     accept_loop(listen_socket)
