@@ -35,3 +35,44 @@ This Software is provided for educational purposes only, and comes with absolute
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+## Resourcer
+
+### Kurser
+
+https://elixirschool.com/en/why
+https://elixircasts.io/
+https://builditwithphoenix.com/
+https://joyofelixir.com/11-files/
+
+### Bøger
+
+https://www.manning.com/books/elixir-in-action-third-edition
+https://www.syncfusion.com/succinctly-free-ebooks/elixir-succinctly/introduction
+
+### Artikler
+
+https://serokell.io/blog/introduction-to-functional-programming
+https://serokell.io/blog/elixir-otp-guide
+https://serokell.io/blog/elixir-metaprogramming
+https://serokell.io/blog/introduction-to-phoenix
+
+https://akoutmos.com/post/phoenix_live_dashboard/
+
+https://blog.appsignal.com/2019/11/12/caching-with-elixir-and-ets.html
+
+https://tolc.io/blog/stripe-with-elixir-and-phoenix
+
+https://freedium.cfd/https://medium.com/@asierr/from-node-js-to-elixir-mastering-functional-programming-a-developers-tale-9b8c0c3dd363
+https://freedium.cfd/https://medium.com/@asierr/elixirs-phoenix-unveiled-your-complete-guide-to-mastering-the-framework-d712415107c1
+
+https://blixtdev.com/real-time-chat-with-phoenix-and-liveview/
+
+https://launchscout.com/blog/two-factor-authentication-in-elixir-and-phoenix
+
+https://readyforproduction.dev/blog/view-transitions-api-and-phoenix-liveview
+
+### Produkter
+
+https://petal.build/pro#features
