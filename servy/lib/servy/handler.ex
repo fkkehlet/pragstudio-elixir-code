@@ -8,6 +8,7 @@ defmodule Servy.Handler do
 
   require Earmark
 
+  import Servy.View, only: [render: 3]
   import Servy.Plugins, only: [rewrite_path: 1, track: 1]
   import Servy.Parser, only: [parse: 1]
   import Servy.FileHandler, only: [handle_file: 2]
@@ -30,20 +31,18 @@ defmodule Servy.Handler do
     %{conv | status: 200, resp_body: "Awake!"}
   end
 
-  def route(%Conv{method: "GET", path: "/snapshots"} = conv) do
-    caller = self() # the request-handling process
+  def route(%Conv{method: "GET", path: "/sensors"} = conv) do
+    task = Task.async(fn -> Servy.Tracker.get_location("bigfoot") end)
 
-    VideoCam.get_snapshot(caller, "cam-1")
-    VideoCam.get_snapshot(caller, "cam-2")
-    VideoCam.get_snapshot(caller, "cam-3")
+    snapshots =
+      ["cam-1", "cam-2", "cam-3"]
+      |> Enum.map(&Task.async(fn -> VideoCam.get_snapshot(&1) end))
+      |> Enum.map(&Task.await/1)
 
-    snap1 = receive do {:result, filename} -> filename end
-    snap2 = receive do {:result, filename} -> filename end
-    snap3 = receive do {:result, filename} -> filename end
+    where_is_bigfoot = Task.await(task)
 
-    snapshots = [snap1, snap2, snap3]
-
-    %{conv | status: 200, resp_body: inspect(snapshots)}
+    # %{conv | status: 200, resp_body: inspect({snapshots, where_is_bigfoot})}
+    render(conv, "sensors.eex", [snapshots: snapshots, location: where_is_bigfoot])
   end
 
   def route(%Conv{method: "GET", path: "/kaboom"}) do

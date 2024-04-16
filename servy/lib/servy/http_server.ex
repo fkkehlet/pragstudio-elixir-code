@@ -34,7 +34,7 @@ defmodule Servy.HttpServer do
     IO.puts("⚡️  Connection accepted!\n")
 
     # Receives the request and sends a response over the client socket.
-    pid = spawn(fn() -> serve(client_socket) end)
+    pid = spawn(fn -> serve(client_socket) end)
     # serve(client_socket)
 
     # If the spawned process dies, it doesn't automatically close the client_socket.

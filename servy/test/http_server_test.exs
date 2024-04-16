@@ -13,26 +13,37 @@ defmodule HttpServerTest do
     # """
 
     port = 5678
-    caller = self()
-    max_concurrent_requests = 5
+    test_routes =
+      [
+        "/wildthings",
+        "/bears",
+        "/api/bears",
+        "/sensors",
+        "/about"
+      ]
 
     spawn(HttpServer, :start, [port])
 
     # Spawn the client processes
-    for _ <- 1..max_concurrent_requests do
-      spawn(fn ->
-        # Send the request
-        {:ok, response} = HTTPoison.get("http://localhost:#{port}/wildthings")
+    for route <- test_routes do
+      task = Task.async(HTTPoison, :get, ["http://localhost:#{port}#{route}"])
 
-        # Send the response back to the parent
-        send(caller, {:ok, response})
-      end)
+      {:ok, response} = Task.await(task)
 
-      receive do
-        {:ok, response} ->
-          assert response.status_code == 200
-          assert response.body == "Bears, Lions, Tigers"
-      end
+      assert response.status_code == 200
+
+      # spawn(fn ->
+      #   # Send the request
+      #   {:ok, response} = HTTPoison.get("http://localhost:#{port}/wildthings")
+      #
+      #   # Send the response back to the parent
+      #   send(caller, {:ok, response})
+      # end)
+      # receive do
+      #   {:ok, response} ->
+      #     assert response.status_code == 200
+      #     assert response.body == "Bears, Lions, Tigers"
+      # end
     end
 
     # response = HttpClient.send_request(request, 5678)

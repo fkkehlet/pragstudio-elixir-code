@@ -10,8 +10,9 @@ defmodule UserApi do
   end
 
   defp handle_response({:ok, %HTTPoison.Response{status_code: 200, body: body}}) do
-    city = Poison.Parser.parse!(body)
-    |> get_in(["address", "city"])
+    city =
+      Poison.Parser.parse!(body)
+      |> get_in(["address", "city"])
 
     {:ok, city}
   end

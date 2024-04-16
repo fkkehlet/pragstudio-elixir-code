@@ -1,6 +1,6 @@
 defmodule PowerNapper do
   def nap() do
-    power_nap = fn() ->
+    power_nap = fn ->
       time = :rand.uniform(10_000)
       :timer.sleep(time)
       time
