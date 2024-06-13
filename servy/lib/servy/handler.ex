@@ -4,7 +4,7 @@ defmodule Servy.Handler do
   # @pages_path Path.expand("../../pages", __DIR__)
   @pages_path Path.expand("pages", File.cwd!())
 
-  alias Servy.{Api, BearController, Conv, VideoCam}
+  alias Servy.{Api, BearController, Conv, PledgeController, VideoCam}
 
   require Earmark
 
@@ -26,6 +26,11 @@ defmodule Servy.Handler do
     |> format_response()
   end
 
+  def route(%Conv{method: "GET", path: "/404s"} = conv) do
+    counts = Servy.FourOhFourCounter.get_counts()
+    %{conv | status: 200, resp_body: inspect(counts)}
+  end
+
   def route(%Conv{method: "GET", path: "/hibernate/" <> time} = conv) do
     time |> String.to_integer() |> :timer.sleep()
     %{conv | status: 200, resp_body: "Awake!"}
@@ -42,7 +47,19 @@ defmodule Servy.Handler do
     where_is_bigfoot = Task.await(task)
 
     # %{conv | status: 200, resp_body: inspect({snapshots, where_is_bigfoot})}
-    render(conv, "sensors.eex", [snapshots: snapshots, location: where_is_bigfoot])
+    render(conv, "sensors.eex", snapshots: snapshots, location: where_is_bigfoot)
+  end
+
+  def route(%Conv{method: "GET", path: "/pledges"} = conv) do
+    PledgeController.index(conv)
+  end
+
+  def route(%Conv{method: "GET", path: "/pledges/new"} = conv) do
+    PledgeController.new(conv)
+  end
+
+  def route(%Conv{method: "POST", path: "/pledges"} = conv) do
+    PledgeController.create(conv, conv.params)
   end
 
   def route(%Conv{method: "GET", path: "/kaboom"}) do
