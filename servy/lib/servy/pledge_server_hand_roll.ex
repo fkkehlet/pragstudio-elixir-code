@@ -24,15 +24,14 @@ defmodule Servy.GenericServer do
       {:cast, message} ->
         new_state = callback_module.handle_cast(message, state)
         listen_loop(new_state, callback_module)
-      unexpected ->
-        IO.puts("Unexpected message: #{inspect(unexpected)}")
-        listen_loop(state, callback_module)
+      unexpected_message ->
+        new_state = callback_module.handle_info(unexpected_message, state)
+        listen_loop(new_state, callback_module)
     end
   end
-
 end
 
-defmodule Servy.PledgeServerGenServer do
+defmodule Servy.PledgeServerHandRoll do
   # __MODULE__ ensures it is always unique, another option is to do @name :pledge_server
   @name __MODULE__
 
@@ -75,6 +74,11 @@ defmodule Servy.PledgeServerGenServer do
     []
   end
 
+  def handle_info(msg, state) do
+    IO.puts("Unexpected message: #{inspect(msg)}")
+    state
+  end
+
   defp send_pledge_to_service(_name, _amount) do
     # CODE GOES HERE TO SEND PLEDGE TO EXTERNAL SERVICE
     {:ok, "pledge-#{:rand.uniform(1000)}"}
@@ -82,7 +86,7 @@ defmodule Servy.PledgeServerGenServer do
 end
 
 # # Client process code
-alias Servy.PledgeServerGenServer, as: GenServer
+# alias Servy.PledgeServerHandRoll, as: GenServer
 
 # Server process is listen loop
 # pid = GenServer.start()
