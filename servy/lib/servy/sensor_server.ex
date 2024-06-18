@@ -49,7 +49,7 @@ defmodule Servy.SensorServer do
   def start_link(options) do
     interval = Keyword.get(options, :interval)
     # target = Keyword.get(options, :target)
-    IO.puts("Starting sensor server with #{interval} minute refresh...")
+    IO.puts("Starting sensor server with #{interval} ms refresh...")
     init_state = %State{refresh_interval: interval}
     GenServer.start_link(@name, init_state, name: @name)
   end

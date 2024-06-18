@@ -10,10 +10,10 @@ defmodule Servy.PledgeServerGen do
     defstruct cache_size: 3, pledges: []
   end
 
-  def child_spec(_arg) do
-    %{id: Servy.PledgeServerGen, restart: :temporary, shutdown: 5000,
-      start: {Servy.PledgeServerGen, :start_link, [[]]}, type: :worker}
-  end
+  # def child_spec(_arg) do
+  #   %{id: Servy.PledgeServerGen, restart: :temporary, shutdown: 5000,
+  #     start: {Servy.PledgeServerGen, :start_link, [[]]}, type: :worker}
+  # end
 
   # Client Interface
   def start_link(_arg) do
