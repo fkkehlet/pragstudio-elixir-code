@@ -2,17 +2,56 @@ defmodule Servy.SensorServer do
 
   defmodule State do
     defstruct sensor_data: %{},
-              refresh_interval: :timer.seconds(5)
+              refresh_interval: :timer.minutes(60) # :timer.seconds(5)
   end
 
   @name __MODULE__
 
-  use GenServer
+  # Overrides for the default child specification
+  use GenServer #,  start: {__MODULE__, :start_link, [60]}, restart: :temporary
+
+
+  # Function clauses
+
+  # def child_spec(:frequent) do
+  #   %{
+  #     id: __MODULE__,
+  #     start: {__MODULE__, :start_link, [1]},
+  #     restart: :permanent,
+  #     shutdown: 5000,
+  #     type: :worker
+  #   }
+  # end
+  #
+  # def child_spec(:infrequent) do
+  #   %{
+  #     id: __MODULE__,
+  #     start: {__MODULE__, :start_link, [60]},
+  #     restart: :permanent,
+  #     shutdown: 5000,
+  #     type: :worker
+  #   }
+  # end
+  #
+  # def child_spec(_) do
+  #   %{
+  #     id: __MODULE__,
+  #     start: {__MODULE__, :start_link, []},
+  #     restart: :permanent,
+  #     shutdown: 5000,
+  #     type: :worker
+  #   }
+  # end
+
 
   # Client Interface
 
-  def start() do
-    GenServer.start(@name, %State{}, name: @name)
+  def start_link(options) do
+    interval = Keyword.get(options, :interval)
+    # target = Keyword.get(options, :target)
+    IO.puts("Starting sensor server with #{interval} minute refresh...")
+    init_state = %State{refresh_interval: interval}
+    GenServer.start_link(@name, init_state, name: @name)
   end
 
   def get_sensor_data() do
@@ -33,7 +72,7 @@ defmodule Servy.SensorServer do
   end
 
   def handle_info(:refresh, state) do
-    IO.puts("Refreshing the cache...")
+    IO.puts("Refreshing the sensor server cache...")
     new_state = run_tasks_to_get_sensor_data()
     schedule_refresh(state.refresh_interval)
     {:noreply, %{state | sensor_data: new_state}}

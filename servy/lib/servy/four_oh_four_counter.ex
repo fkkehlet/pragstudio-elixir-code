@@ -37,8 +37,9 @@ defmodule Servy.FourOhFourCounter do
 
   # alias Servy.FourOhGenServer, as: FourOhGenServer
 
-  def start() do
-   GenServer.start(__MODULE__, %{}, name: @name)
+  def start_link(_arg) do
+    IO.puts("Starting the 404 counter...")
+    GenServer.start_link(__MODULE__, %{}, name: @name)
   end
 
   def bump_count(route) do

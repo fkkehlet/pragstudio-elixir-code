@@ -10,10 +10,15 @@ defmodule Servy.PledgeServerGen do
     defstruct cache_size: 3, pledges: []
   end
 
+  def child_spec(_arg) do
+    %{id: Servy.PledgeServerGen, restart: :temporary, shutdown: 5000,
+      start: {Servy.PledgeServerGen, :start_link, [[]]}, type: :worker}
+  end
+
   # Client Interface
-  def start() do
+  def start_link(_arg) do
     IO.puts("Starting the pledge server...")
-    GenServer.start(__MODULE__, %State{}, name: @name)
+    GenServer.start_link(__MODULE__, %State{}, name: @name)
   end
 
   def set_cache_size(size) do
